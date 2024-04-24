@@ -62,9 +62,6 @@ cap <- cap |>
          Longtiude = V3)
 
 
-
-
-
 #bind together "https://api.g7vrd.co.uk/v1/satellite-passes/25544/", lat, "/", long, ".json"
 ```
 
