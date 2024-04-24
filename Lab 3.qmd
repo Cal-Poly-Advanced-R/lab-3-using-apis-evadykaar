@@ -41,10 +41,13 @@ You can find the latitudes and longitudes for the U.S. state capitals at [this s
 ```{r}
 # loading in data
 pass <- GET("https://api.g7vrd.co.uk/v1/satellite-passes/25544/51.45/-2.5833.json")
+cap <- GET("https://people.sc.fsu.edu/~jburkardt/datasets/states/state_capitals_ll.txt")
+
 ```
 
 ```{r}
 rawToChar(pass$content)
+rawToChar(cap$content)
 ```
 
 ```{r}
@@ -61,19 +64,6 @@ capital <- capital %>%
 ```
 ```{r}
 data$passes
-```
-```{r}
-# State capitals data
-cap <- read.table("https://people.sc.fsu.edu/~jburkardt/datasets/states/state_capitals_ll.txt")
-
-cap <- cap |>
-  rename(State = V1,
-         Latitude = V2,
-         Longitude = V3)
-```
-
-```{r}
-
 ```
 
 ```{r}
