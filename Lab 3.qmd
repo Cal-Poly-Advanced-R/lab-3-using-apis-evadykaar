@@ -40,13 +40,12 @@ You can find the latitudes and longitudes for the U.S. state capitals at [this s
 
 ```{r}
 # loading in data
-pass <- GET("https://api.g7vrd.co.uk/v1/satellite-passes/25544/51.45/-2.5833.json?minelevation=70&hours=12")
+pass <- GET("https://api.g7vrd.co.uk/v1/satellite-passes/25544/51.45/-2.5833.json")
 ```
 
 ```{r}
 rawToChar(pass$content)
 ```
-
 
 ```{r}
 data <- fromJSON(rawToChar(pass$content))
@@ -59,6 +58,22 @@ capital <- capital %>%
   rename(State = V1,
          Latitude = V2,
          Longitude = V3)
+```
+```{r}
+data$passes
+```
+```{r}
+# State capitals data
+cap <- read.table("https://people.sc.fsu.edu/~jburkardt/datasets/states/state_capitals_ll.txt")
+
+cap <- cap |>
+  rename(State = V1,
+         Latitude = V2,
+         Longitude = V3)
+```
+
+```{r}
+
 ```
 
 ```{r}
@@ -96,6 +111,11 @@ print(pass_times_df)
 ### Mapping the Data
 
 1.  Map the U.S. state capitals using `leaflet`
+
+```{r}
+
+```
+
 
 2.  Find an image of your choosing to use as the marker icon, that's relevant for these data.
 
