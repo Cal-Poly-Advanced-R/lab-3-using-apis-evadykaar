@@ -69,34 +69,25 @@ data$passes
 
 ```{r}
 # Function to fetch pass times for a given location
-fetch_pass_times <- function(latitude, longitude, minelevation=70, hours=12) {
+pass_times <- function(latitude, longitude) {
   url <- paste0("https://api.g7vrd.co.uk/v1/satellite-passes/25544/",
-                latitude, "/", longitude, ".json?minelevation=", 
-                minelevation, "&hours=", hours)
-  response <- GET(url)
-  if (http_status(response)$status == 200) {
-    return(content(response, as = "parsed")$passes)
-  } else {
-    return(NULL)
-  }
+                latitude, "/", longitude, ".json")
+  pass <- GET(url)
+  fromJSON(rawToChar(pass$content)) |> 
+    data.frame(data) |> 
+    slice_head(n = 3)
+
 }
 
 # Fetch pass times for the given coordinates
-passes <- fetch_pass_times(51.45, -2.5833)
+passes <- pass_times(51.45, -2.5833)
+passes
 
-# Convert pass times to dataframe
-pass_times_df <- data.frame(passes)
+#map2
+#x = lat, y = long, functionname (pass)
+#use rbind, put lists into dataframe
 
-# Extract the first 3 pass times
-pass_times_df <- pass_times_df %>%
-  slice_head(n = 3)
 
-# Convert pass times to POSIXct format
-pass_times_df$startUTC <- as.POSIXct(pass_times_df$startUTC, origin="1970-01-01")
-pass_times_df$endUTC <- as.POSIXct(pass_times_df$endUTC, origin="1970-01-01")
-
-# View the dataframe
-print(pass_times_df)
 ```
 
 ### Mapping the Data
@@ -106,7 +97,6 @@ print(pass_times_df)
 ```{r}
 
 ```
-
 
 2.  Find an image of your choosing to use as the marker icon, that's relevant for these data.
 
