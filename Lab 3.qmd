@@ -62,6 +62,7 @@ capital <- capital %>%
          Latitude = V2,
          Longitude = V3)
 ```
+
 ```{r}
 data$passes
 ```
