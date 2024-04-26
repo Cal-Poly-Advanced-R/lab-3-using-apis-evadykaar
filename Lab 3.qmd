@@ -57,10 +57,12 @@ names(data)
 data.frame(data)
 
 capital <- read.table("https://people.sc.fsu.edu/~jburkardt/datasets/states/state_capitals_ll.txt")
-capital <- capital %>%
+capital <- capital |>
   rename(State = V1,
          Latitude = V2,
-         Longitude = V3)
+         Longitude = V3) |>
+  mutate(Latitude = as.numeric(Latitude),
+         Longitude = as.numeric(Longitude))
 ```
 
 ```{r}
@@ -68,20 +70,39 @@ data$passes
 ```
 
 ```{r}
-# Function to fetch pass times for a given location
+# Function to get pass times for a given location
+# pass_times <- function(latitude, longitude) {
+#   url <- paste0("https://api.g7vrd.co.uk/v1/satellite-passes/25544/",
+#                 latitude, "/", longitude, ".json")
+#   pass <- GET(url)
+#   fromJSON(rawToChar(pass$content)) |> 
+#     data.frame(data) |> 
+#     slice_head(n = 3)
+# 
+# }
+
+# new function that prints out NULL if the lat and long don't work
 pass_times <- function(latitude, longitude) {
   url <- paste0("https://api.g7vrd.co.uk/v1/satellite-passes/25544/",
                 latitude, "/", longitude, ".json")
   pass <- GET(url)
-  fromJSON(rawToChar(pass$content)) |> 
-    data.frame(data) |> 
+  pass_data <- fromJSON(rawToChar(pass$content))
+  if (length(pass_data$passes) == 0) {
+    return(NULL)
+  }
+  pass_data |>
+  data.frame(data) |> 
     slice_head(n = 3)
 
 }
 
+
+
 # Fetch pass times for the given coordinates
 passes <- pass_times(51.45, -2.5833)
 passes
+
+pass_times(capital$Latitude[2], capital$Longitude[2])
 
 #map2
 #x = lat, y = long, functionname (pass)
@@ -89,6 +110,19 @@ passes
 
 
 ```
+
+
+
+```{r}
+pass_times(capital$Latitude[2], capital$Longitude[2])
+```
+
+
+```{r}
+# this map function isnt working
+map2(capital$Latitude, capital$Longitude, pass_times)
+```
+
 
 ### Mapping the Data
 
