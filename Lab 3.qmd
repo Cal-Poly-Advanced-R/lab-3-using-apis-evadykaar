@@ -20,6 +20,7 @@ library(here)
 library(tidyverse)
 library(httr)
 library(jsonlite)
+library(leaflet)
 ```
 
 **Create one Quarto file for all of Lab 4.**
@@ -38,89 +39,39 @@ You can find the latitudes and longitudes for the U.S. state capitals at [this s
 
 1.  Use the API to get the next 3 predicted pass times for all of the U.S. state capitals. Organize all of this information into a nice data frame (or data frame-like object) that will be easy to use for mapping.
 
-```{r}
-# loading in data
-pass <- GET("https://api.g7vrd.co.uk/v1/satellite-passes/25544/51.45/-2.5833.json")
-cap <- GET("https://people.sc.fsu.edu/~jburkardt/datasets/states/state_capitals_ll.txt")
-
-```
 
 ```{r}
-rawToChar(pass$content)
-rawToChar(cap$content)
-```
-
-```{r}
-data <- fromJSON(rawToChar(pass$content))
-names(data)
-
-data.frame(data)
+# Loading in capital dataset
 
 capital <- read.table("https://people.sc.fsu.edu/~jburkardt/datasets/states/state_capitals_ll.txt")
 capital <- capital |>
   rename(State = V1,
          Latitude = V2,
-         Longitude = V3) |>
-  mutate(Latitude = as.numeric(Latitude),
-         Longitude = as.numeric(Longitude))
-```
-
-```{r}
-data$passes
+         Longitude = V3)
 ```
 
 ```{r}
 # Function to get pass times for a given location
-# pass_times <- function(latitude, longitude) {
-#   url <- paste0("https://api.g7vrd.co.uk/v1/satellite-passes/25544/",
-#                 latitude, "/", longitude, ".json")
-#   pass <- GET(url)
-#   fromJSON(rawToChar(pass$content)) |> 
-#     data.frame(data) |> 
-#     slice_head(n = 3)
-# 
-# }
-
-# new function that prints out NULL if the lat and long don't work
 pass_times <- function(latitude, longitude) {
   url <- paste0("https://api.g7vrd.co.uk/v1/satellite-passes/25544/",
                 latitude, "/", longitude, ".json")
   pass <- GET(url)
-  pass_data <- fromJSON(rawToChar(pass$content))
-  if (length(pass_data$passes) == 0) {
-    return(NULL)
-  }
-  pass_data |>
-  data.frame(data) |> 
+  data <- fromJSON(rawToChar(pass$content))
+  if (length(data$pass) == 0) {
+     return(NULL)
+   }
+  dataframe <- data |>
+    data.frame(data) |>
     slice_head(n = 3)
+  dataframe
 
 }
-
-
-
-# Fetch pass times for the given coordinates
-passes <- pass_times(51.45, -2.5833)
-passes
-
-pass_times(capital$Latitude[2], capital$Longitude[2])
-
-#map2
-#x = lat, y = long, functionname (pass)
-#use rbind, put lists into dataframe
-
-
 ```
 
-
-
 ```{r}
-pass_times(capital$Latitude[2], capital$Longitude[2])
-```
-
-
-```{r}
-# this map function isnt working
-map2(capital$Latitude, capital$Longitude, pass_times)
+# Source for bind_rows(): https://dplyr.tidyverse.org/reference/bind_rows.html
+map_passes <- map2(capital$Latitude, capital$Longitude, pass_times) |>
+  bind_rows()
 ```
 
 
@@ -129,10 +80,64 @@ map2(capital$Latitude, capital$Longitude, pass_times)
 1.  Map the U.S. state capitals using `leaflet`
 
 ```{r}
-
+# Map with U.S. capitals
+leaflet() |>
+  addProviderTiles(providers$Stadia.StamenTerrain) |>
+  addCircleMarkers(data = map_passes,
+                   lat = ~lat,
+                   lng = ~lon,
+                   radius = 4,
+                   color = "darkgreen") |>
+  setView(lng = -100, lat = 40, zoom = 4)
 ```
 
 2.  Find an image of your choosing to use as the marker icon, that's relevant for these data.
+
+```{r}
+leaflet() |>
+  addProviderTiles(providers$Stadia.StamenTerrain) |>
+  addCircleMarkers(data = map_passes,
+                   lat = ~lat,
+                   lng = ~lon,
+                   radius = 4,
+                   color = "darkgreen") |>
+  setView(lng = -100, lat = 40, zoom = 4)
+
+
+#Set color palette
+#qpal <- colorQuantile("Blues", countries_clean2$nat_results, n = 7) 
+
+# map1 <- map_passes |>
+#   leaflet() |>
+#   #Adding map with no labels
+#   addProviderTiles(
+#     provider = "Esri.NatGeoWorldMap" 
+#   ) |>
+#   #Setting the default view screen
+#   setView(lng = 0, lat = 48, zoom = 1) |>
+#   #Specifies country border colors and thickness and adding color palette
+#   addPolygons(smoothFactor = 0.2, 
+#               opacity = 1,
+#               color = "slategray",
+#               weight = 1,
+#               fillOpacity = 1)
+#               #Adding labels for when you hover over a country
+#               #label = ~paste(name, ": ", round(nat_results * 100, 2), "%", sep = ""),
+#               
+#   #Add plot title and specify font color, size, and position
+#   addControl(
+#     html = "<div style='
+#       text-align: center;
+#       background-color: white;
+#       padding: 5px;
+#       font-weight: bold;
+#       font-size: 20px;
+#       color: black;
+#     '>ISS Pass Times Over U.S. State Capitals</div>",
+#     position = "topright"
+#   )
+```
+
 
 3.  The hover-over information for each marker should include the name of the state capital and the soonest predicted pass time. The click information should include the name of the state capital and all three predicted pass times. Make sure these times are in an easy-to-read format.
 
