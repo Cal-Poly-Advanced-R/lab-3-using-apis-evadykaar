@@ -1,5 +1,5 @@
 ---
-title: "Lab 3"
+title: "Lab 4"
 author: "Kai, Eva, Chloe"
 format: 
   html: 
@@ -70,6 +70,7 @@ pass_times <- function(latitude, longitude) {
 
 ```{r}
 # Source for bind_rows(): https://dplyr.tidyverse.org/reference/bind_rows.html
+#Creating dataset that includes each pass time per state capital
 map_passes <- map2(capital$Latitude, capital$Longitude, pass_times) |>
   bind_rows()
 ```
@@ -116,17 +117,17 @@ leaflet() |>
 # Source for capital data: https://www.thespreadsheetguru.com/list-united-states-capitals-abbreviations/
 # Source for needing "\\" with a "." to separate by it: https://stackoverflow.com/questions/26665100/how-to-use-the-strsplit-function-with-a-period
 # Source for collapse in paste: https://www.digitalocean.com/community/tutorials/paste-in-r
+# Source for gsub function: https://www.digitalocean.com/community/tutorials/sub-and-gsub-function-r
 
 # Reading in dataset with capital names
 city <- read.csv(here("Data", "State Capitals.csv"))
 
 # Joining together datasets
-map_data <- left_join(map_passes, capital, by = c("lon" = "Longitude"))
-map_data <- left_join(map_data, city, by = "State")
+map_data <- map_passes %>%
+  left_join(capital, by = c("lon" = "Longitude")) %>%
+  left_join(city, by = "State") |>
 
 # Making popup for click info column
-map_data <- map_data |>
-  
   # Separating date and time pieces of the passes.start
   separate(passes.start, 
            into = c("Date", "Time.unedit"), 
@@ -145,7 +146,8 @@ map_data <- map_data |>
   mutate(state.date.times = paste(Date.Time, collapse = ", "),
          click = paste("<strong>State Capital:", State.Capital,
                         "<br>",
-                       "</strong>Predicted Passes:", state.date.times)) |>
+                       "</strong>Predicted Passes:", "<br>", 
+                       gsub(",", "<br>", state.date.times, fixed = TRUE))) |>
   
   # Separating the first pass time for each state
   separate(state.date.times, 
@@ -153,12 +155,12 @@ map_data <- map_data |>
            sep = ",", remove = FALSE)
 
 #Creating hover labels for each state capital
-
 hover <- paste(
   "<strong>State Capital:", map_data$State.Capital,
   "</strong><br>Next Pass:", map_data$First.Pass) %>%
   lapply(htmltools::HTML)
 ```
+
 
 ```{r}
 # Map with a click popup and hover popup
@@ -176,6 +178,7 @@ leaflet() |>
   setView(lng = -100,
           lat = 40,
           zoom = 4)
+
 ```
 
 ### Drawing the Route of the ISS
@@ -185,6 +188,7 @@ Check out this video for [adding polylines](https://www.youtube.com/watch?v=iKES
 1.  Overlay lines on your map that connect the U.S. state capitals in order of pass times (essentially east to west) so that we can see the expected pass order.
 
 ```{r}
+#Arranging the data from east to west
 map_data_arrange <- map_data |>
   ungroup() |> 
   arrange(-lon) 
@@ -196,7 +200,6 @@ hover2 <- paste(
   lapply(htmltools::HTML)
   
 ```
-
 
 ```{r}
 #Leaflet Map
@@ -223,7 +226,7 @@ leaflet(map_data_arrange) |>
                lng = ~lon, 
                color = "darkgreen",
                opacity = 1,
-               weight = 4) |>
+               weight = 4)|>
   addControl(
     html = "Map of the Order of Pass Times <br> for State Capitals<div>",
     position = "topright"
