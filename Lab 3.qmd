@@ -147,6 +147,13 @@ map_data <- map_data |>
            into = c("First.Pass", "Rest Passes"), 
            sep = ",", remove = FALSE) |>
   # Making the hover part of the popup
+
+  mutate(hover = paste("State Capital:", State.Capital, 
+                       "<br>",
+                       "Next Pass:", First.Pass)
+         )
+
+
   mutate(hover = paste("State Capital:", State.Capital,
                        "\n",
                        "Next Pass:", First.Pass))
@@ -154,6 +161,7 @@ hover <- paste(
   "<strong>State Capital:", map_data$State.Capital,
   "</strong><br>Next Pass:", map_data$First.Pass) %>%
   lapply(htmltools::HTML)
+
 ```
 
 ```{r}
@@ -163,13 +171,14 @@ leaflet() |>
   addMarkers(data = map_data,
                    lat = ~lat,
                    lng = ~lon,
-             icon = ~icons(iconUrl = "Rocket.png", 
-                         iconWidth = 40, 
+             icon = ~icons(iconUrl = "Rocket.png",
+                         iconWidth = 40,
                          iconHeight = 40),
              popup = ~click,
-             label = ~hover) |>
-  setView(lng = -100, 
-          lat = 40, 
+             label = ~hover
+             ) |>
+  setView(lng = -100,
+          lat = 40,
           zoom = 4)
 ```
 
