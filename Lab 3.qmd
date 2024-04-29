@@ -21,6 +21,7 @@ library(tidyverse)
 library(httr)
 library(jsonlite)
 library(leaflet)
+library(leaflet.extras2)
 ```
 
 **Create one Quarto file for all of Lab 4.**
@@ -125,23 +126,27 @@ map_data <- left_join(map_data, city, by = "State")
 
 # Making popup for click info column
 map_data <- map_data |>
+  
   # Separating date and time pieces of the passes.start
   separate(passes.start, 
            into = c("Date", "Time.unedit"), 
            sep = "T", remove = FALSE) |>
+  
   # Separating the hour, minutes, and seconds of the time from the milliseconds
   separate(Time.unedit, 
            into = c("Time", "Rest"), 
            sep = "\\.", remove = FALSE) |>
+  
   # Pasting together the cleaned date and time pieces
   mutate(Date.Time = paste(Date, Time)) |>
+  
   # Pasting together the pass times by state
   group_by(State) |>
   mutate(state.date.times = paste(Date.Time, collapse = ", "),
-  # Making the click part of the popup
          click = paste("<strong>State Capital:", State.Capital,
                         "<br>",
                        "</strong>Predicted Passes:", state.date.times)) |>
+  
   # Separating the first pass time for each state
   separate(state.date.times, 
            into = c("First.Pass", "Rest Passes"), 
@@ -182,7 +187,7 @@ Check out this video for [adding polylines](https://www.youtube.com/watch?v=iKES
 ```{r}
 map_data_arrange <- map_data |>
   ungroup() |> 
-  arrange(lon) 
+  arrange(-lon) 
 
 #Renaming hover labels for each state capital
 hover2 <- paste(
@@ -192,42 +197,13 @@ hover2 <- paste(
   
 ```
 
-```{r}
-
-leaflet() |>
-  addProviderTiles(providers$Stadia.StamenTerrain) |>
-  addMarkers(data = map_data_arrange,
-                   lat = ~lat,
-                   lng = ~lon,
-             icon = ~icons(iconUrl = "Rocket.png", 
-                         iconWidth = 40, 
-                         iconHeight = 40),
-             popup = ~click,
-
-             label = ~hover) |>
-  addPolylines(data = map_data_arrange,
-               lat = ~lat,
-               lng = ~lon,
-               color = "darkgreen") |>
-             label = ~hover2) |>
-  setView(lng = -100, 
-          lat = 40, 
-          zoom = 4) |>
-  addPolylines(data = map_data_arrange,
-               lat = ~lat,
-               lng = ~lon, 
-               color = "darkgreen",
-               opacity = 1,
-               weight = 4)
-
-```
 
 ```{r}
-library(leaflet.extras2)
-leaflet() |>
+#Leaflet Map
+
+leaflet(map_data_arrange) |>
   addProviderTiles(providers$Stadia.StamenTerrain) |>
-  addMarkers(data = map_data_arrange,
-                   lat = ~lat,
+  addMarkers(lat = ~lat,
                    lng = ~lon,
              icon = ~icons(iconUrl = "Rocket.png", 
                          iconWidth = 40, 
@@ -237,19 +213,21 @@ leaflet() |>
   setView(lng = -100, 
           lat = 40, 
           zoom = 4) |>
-  addPolylines(data = map_data_arrange,
-               lat = ~lat,
+  addPolylines(lat = ~lat,
                lng = ~lon, 
                color = "darkgreen",
                opacity = 1,
                weight = 4,
                 ) |>
-  addArrowhead(data = map_data_arrange,
-               lat = ~lat,
+  addArrowhead(lat = ~lat,
                lng = ~lon, 
                color = "darkgreen",
                opacity = 1,
-               weight = 4)
+               weight = 4) |>
+  addControl(
+    html = "Map of the Order of Pass Times <br> for State Capitals<div>",
+    position = "topright"
+  )
 
 ## Source for addArrowhead: https://rdrr.io/cran/leaflet.extras2/src/R/arrowhead.R
 
