@@ -70,6 +70,7 @@ pass_times <- function(latitude, longitude) {
 
 ```{r}
 # Source for bind_rows(): https://dplyr.tidyverse.org/reference/bind_rows.html
+
 map_passes <- map2(capital$Latitude, capital$Longitude, pass_times) |>
   bind_rows()
 ```
@@ -196,7 +197,6 @@ hover2 <- paste(
   lapply(htmltools::HTML)
   
 ```
-
 
 ```{r}
 #Leaflet Map
