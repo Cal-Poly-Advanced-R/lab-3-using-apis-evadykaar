@@ -184,7 +184,7 @@ map_data_arrange <- map_data |>
   ungroup() |> 
   arrange(lon) 
 
-#Creating hover labels for each state capital
+#Renaming hover labels for each state capital
 hover2 <- paste(
   "<strong>State Capital:", map_data_arrange$State.Capital,
   "</strong><br>Next Pass:", map_data_arrange$First.Pass) %>%
@@ -219,5 +219,38 @@ leaflet() |>
                color = "darkgreen",
                opacity = 1,
                weight = 4)
+
+```
+
+```{r}
+library(leaflet.extras2)
+leaflet() |>
+  addProviderTiles(providers$Stadia.StamenTerrain) |>
+  addMarkers(data = map_data_arrange,
+                   lat = ~lat,
+                   lng = ~lon,
+             icon = ~icons(iconUrl = "Rocket.png", 
+                         iconWidth = 40, 
+                         iconHeight = 40),
+             popup = ~click,
+             label = ~hover2) |>
+  setView(lng = -100, 
+          lat = 40, 
+          zoom = 4) |>
+  addPolylines(data = map_data_arrange,
+               lat = ~lat,
+               lng = ~lon, 
+               color = "darkgreen",
+               opacity = 1,
+               weight = 4,
+                ) |>
+  addArrowhead(data = map_data_arrange,
+               lat = ~lat,
+               lng = ~lon, 
+               color = "darkgreen",
+               opacity = 1,
+               weight = 4)
+
+## Source for addArrowhead: https://rdrr.io/cran/leaflet.extras2/src/R/arrowhead.R
 
 ```
