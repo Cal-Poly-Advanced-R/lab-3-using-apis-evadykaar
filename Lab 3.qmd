@@ -148,11 +148,11 @@ map_data <- map_data |>
            sep = ",", remove = FALSE)
 
 #Creating hover labels for each state capital
+
 hover <- paste(
   "<strong>State Capital:", map_data$State.Capital,
   "</strong><br>Next Pass:", map_data$First.Pass) %>%
   lapply(htmltools::HTML)
-
 ```
 
 ```{r}
@@ -162,13 +162,14 @@ leaflet() |>
   addMarkers(data = map_data,
                    lat = ~lat,
                    lng = ~lon,
-             icon = ~icons(iconUrl = "Rocket.png", 
-                         iconWidth = 40, 
+             icon = ~icons(iconUrl = "Rocket.png",
+                         iconWidth = 40,
                          iconHeight = 40),
              popup = ~click,
-             label = ~hover) |>
-  setView(lng = -100, 
-          lat = 40, 
+             label = ~hover
+             ) |>
+  setView(lng = -100,
+          lat = 40,
           zoom = 4)
 ```
 
@@ -192,6 +193,7 @@ hover2 <- paste(
 ```
 
 ```{r}
+
 leaflet() |>
   addProviderTiles(providers$Stadia.StamenTerrain) |>
   addMarkers(data = map_data_arrange,
