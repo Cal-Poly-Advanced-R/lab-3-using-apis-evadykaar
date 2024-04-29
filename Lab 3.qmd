@@ -149,7 +149,9 @@ map_data <- map_data |>
   # Making the hover part of the popup
   mutate(hover = paste("State Capital:", State.Capital, 
                        "<br>",
-                       "Next Pass:", First.Pass))
+                       "Next Pass:", First.Pass)
+         )
+
 ```
 
 ```{r}
@@ -159,13 +161,14 @@ leaflet() |>
   addMarkers(data = map_data,
                    lat = ~lat,
                    lng = ~lon,
-             icon = ~icons(iconUrl = "Rocket.png", 
-                         iconWidth = 40, 
+             icon = ~icons(iconUrl = "Rocket.png",
+                         iconWidth = 40,
                          iconHeight = 40),
              popup = ~click,
-             label = ~hover) |>
-  setView(lng = -100, 
-          lat = 40, 
+             label = ~hover
+             ) |>
+  setView(lng = -100,
+          lat = 40,
           zoom = 4)
 ```
 
@@ -174,3 +177,4 @@ leaflet() |>
 Check out this video for [adding polylines](https://www.youtube.com/watch?v=iKESL0Iwmmw) to a `leaflet` map.
 
 1.  Overlay lines on your map that connect the U.S. state capitals in order of pass times (essentially east to west) so that we can see the expected pass order.
+
