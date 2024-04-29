@@ -206,7 +206,7 @@ leaflet() |>
   addPolylines(data = map_data_arrange,
                lat = ~lat,
                lng = ~lon,
-               color = "red") |>
+               color = "darkgreen") |>
   setView(lng = -100, 
           lat = 40, 
           zoom = 4)
