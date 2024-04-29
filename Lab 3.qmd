@@ -147,10 +147,20 @@ map_data <- map_data |>
            into = c("First.Pass", "Rest Passes"), 
            sep = ",", remove = FALSE) |>
   # Making the hover part of the popup
+
   mutate(hover = paste("State Capital:", State.Capital, 
                        "<br>",
                        "Next Pass:", First.Pass)
          )
+
+
+  mutate(hover = paste("State Capital:", State.Capital,
+                       "\n",
+                       "Next Pass:", First.Pass))
+hover <- paste(
+  "<strong>State Capital:", map_data$State.Capital,
+  "</strong><br>Next Pass:", map_data$First.Pass) %>%
+  lapply(htmltools::HTML)
 
 ```
 
@@ -177,4 +187,28 @@ leaflet() |>
 Check out this video for [adding polylines](https://www.youtube.com/watch?v=iKESL0Iwmmw) to a `leaflet` map.
 
 1.  Overlay lines on your map that connect the U.S. state capitals in order of pass times (essentially east to west) so that we can see the expected pass order.
+
+```{r}
+
+map_data_arrange <- map_data |>
+  arrange(lon)
+  
+leaflet() |>
+  addProviderTiles(providers$Stadia.StamenTerrain) |>
+  addMarkers(data = map_data_arrange,
+                   lat = ~lat,
+                   lng = ~lon,
+             icon = ~icons(iconUrl = "Rocket.png", 
+                         iconWidth = 40, 
+                         iconHeight = 40),
+             popup = ~click,
+             label = ~hover) |>
+  addPolylines(data = map_data_arrange,
+               lat = ~lat,
+               lng = ~lon,
+               color = "red") |>
+  setView(lng = -100, 
+          lat = 40, 
+          zoom = 4)
+```
 
