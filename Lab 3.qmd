@@ -117,6 +117,7 @@ leaflet() |>
 # Source for capital data: https://www.thespreadsheetguru.com/list-united-states-capitals-abbreviations/
 # Source for needing "\\" with a "." to separate by it: https://stackoverflow.com/questions/26665100/how-to-use-the-strsplit-function-with-a-period
 # Source for collapse in paste: https://www.digitalocean.com/community/tutorials/paste-in-r
+# Source for gsub function: https://www.digitalocean.com/community/tutorials/sub-and-gsub-function-r
 
 # Reading in dataset with capital names
 city <- read.csv(here("Data", "State Capitals.csv"))
@@ -146,7 +147,8 @@ map_data <- map_data |>
   mutate(state.date.times = paste(Date.Time, collapse = ", "),
          click = paste("<strong>State Capital:", State.Capital,
                         "<br>",
-                       "</strong>Predicted Passes:", state.date.times)) |>
+                       "</strong>Predicted Passes:", "<br>", 
+                       gsub(",", "<br>", state.date.times, fixed = TRUE))) |>
   
   # Separating the first pass time for each state
   separate(state.date.times, 
@@ -176,6 +178,7 @@ leaflet() |>
   setView(lng = -100,
           lat = 40,
           zoom = 4)
+
 ```
 
 ### Drawing the Route of the ISS
