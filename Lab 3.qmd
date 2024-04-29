@@ -70,7 +70,7 @@ pass_times <- function(latitude, longitude) {
 
 ```{r}
 # Source for bind_rows(): https://dplyr.tidyverse.org/reference/bind_rows.html
-
+#Creating dataset that includes each pass time per state capital
 map_passes <- map2(capital$Latitude, capital$Longitude, pass_times) |>
   bind_rows()
 ```
@@ -154,7 +154,6 @@ map_data <- map_data |>
            sep = ",", remove = FALSE)
 
 #Creating hover labels for each state capital
-
 hover <- paste(
   "<strong>State Capital:", map_data$State.Capital,
   "</strong><br>Next Pass:", map_data$First.Pass) %>%
@@ -186,6 +185,7 @@ Check out this video for [adding polylines](https://www.youtube.com/watch?v=iKES
 1.  Overlay lines on your map that connect the U.S. state capitals in order of pass times (essentially east to west) so that we can see the expected pass order.
 
 ```{r}
+#Arranging the data from east to west
 map_data_arrange <- map_data |>
   ungroup() |> 
   arrange(-lon) 
@@ -223,7 +223,7 @@ leaflet(map_data_arrange) |>
                lng = ~lon, 
                color = "darkgreen",
                opacity = 1,
-               weight = 4) |>
+               weight = 4)|>
   addControl(
     html = "Map of the Order of Pass Times <br> for State Capitals<div>",
     position = "topright"
