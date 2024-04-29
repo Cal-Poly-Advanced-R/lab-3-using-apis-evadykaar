@@ -39,7 +39,6 @@ You can find the latitudes and longitudes for the U.S. state capitals at [this s
 
 1.  Use the API to get the next 3 predicted pass times for all of the U.S. state capitals. Organize all of this information into a nice data frame (or data frame-like object) that will be easy to use for mapping.
 
-
 ```{r}
 # Loading in capital dataset
 
@@ -74,7 +73,6 @@ map_passes <- map2(capital$Latitude, capital$Longitude, pass_times) |>
   bind_rows()
 ```
 
-
 ### Mapping the Data
 
 1.  Map the U.S. state capitals using `leaflet`
@@ -94,52 +92,82 @@ leaflet() |>
 2.  Find an image of your choosing to use as the marker icon, that's relevant for these data.
 
 ```{r}
+# Source for rocket image: https://pngtree.com/element/down?id=NTUzMTc4Nw==&type=1&time=1714350436&token=YmIyZDI1MzQwMzU0NTdkYjJmNDM5NTcxNDEwZDhjYjY=&t=0
+# Source for adding marker icon: https://rdrr.io/cran/leaflet/man/icons.html
+
+# Map with rocket marker icon
 leaflet() |>
   addProviderTiles(providers$Stadia.StamenTerrain) |>
-  addCircleMarkers(data = map_passes,
+  addMarkers(data = map_passes,
                    lat = ~lat,
                    lng = ~lon,
-                   radius = 4,
-                   color = "darkgreen") |>
-  setView(lng = -100, lat = 40, zoom = 4)
-
-
-#Set color palette
-#qpal <- colorQuantile("Blues", countries_clean2$nat_results, n = 7) 
-
-# map1 <- map_passes |>
-#   leaflet() |>
-#   #Adding map with no labels
-#   addProviderTiles(
-#     provider = "Esri.NatGeoWorldMap" 
-#   ) |>
-#   #Setting the default view screen
-#   setView(lng = 0, lat = 48, zoom = 1) |>
-#   #Specifies country border colors and thickness and adding color palette
-#   addPolygons(smoothFactor = 0.2, 
-#               opacity = 1,
-#               color = "slategray",
-#               weight = 1,
-#               fillOpacity = 1)
-#               #Adding labels for when you hover over a country
-#               #label = ~paste(name, ": ", round(nat_results * 100, 2), "%", sep = ""),
-#               
-#   #Add plot title and specify font color, size, and position
-#   addControl(
-#     html = "<div style='
-#       text-align: center;
-#       background-color: white;
-#       padding: 5px;
-#       font-weight: bold;
-#       font-size: 20px;
-#       color: black;
-#     '>ISS Pass Times Over U.S. State Capitals</div>",
-#     position = "topright"
-#   )
+             icon = ~ icons(iconUrl = "Rocket.png", 
+                         iconWidth = 40, 
+                         iconHeight = 40)) |>
+  setView(lng = -100, 
+          lat = 40, 
+          zoom = 4)
 ```
 
-
 3.  The hover-over information for each marker should include the name of the state capital and the soonest predicted pass time. The click information should include the name of the state capital and all three predicted pass times. Make sure these times are in an easy-to-read format.
+
+```{r}
+# Source for capital data: https://www.thespreadsheetguru.com/list-united-states-capitals-abbreviations/
+# Source for needing "\\" with a "." to separate by it: https://stackoverflow.com/questions/26665100/how-to-use-the-strsplit-function-with-a-period
+# Source for collapse in paste: https://www.digitalocean.com/community/tutorials/paste-in-r
+
+# Reading in dataset with capital names
+city <- read.csv(here("Data", "State Capitals.csv"))
+
+# Joining together datasets
+map_data <- left_join(map_passes, capital, by = c("lon" = "Longitude"))
+map_data <- left_join(map_data, city, by = "State")
+
+# Making popup for click info column
+map_data <- map_data |>
+  # Separating date and time pieces of the passes.start
+  separate(passes.start, 
+           into = c("Date", "Time.unedit"), 
+           sep = "T", remove = FALSE) |>
+  # Separating the hour, minutes, and seconds of the time from the milliseconds
+  separate(Time.unedit, 
+           into = c("Time", "Rest"), 
+           sep = "\\.", remove = FALSE) |>
+  # Pasting together the cleaned date and time pieces
+  mutate(Date.Time = paste(Date, Time)) |>
+  # Pasting together the pass times by state
+  group_by(State) |>
+  mutate(state.date.times = paste(Date.Time, collapse = ", "),
+  # Making the click part of the popup
+         click = paste("State Capital:", State.Capital,
+                        "<br>",
+                       "Predicted Passes:", state.date.times)) |>
+  # Separating the first pass time for each state
+  separate(state.date.times, 
+           into = c("First.Pass", "Rest Passes"), 
+           sep = ",", remove = FALSE) |>
+  # Making the hover part of the popup
+  mutate(hover = paste("State Capital:", State.Capital, 
+                       "<br>",
+                       "Next Pass:", First.Pass))
+```
+
+```{r}
+# Map with a click popup and hover popup
+leaflet() |>
+  addProviderTiles(providers$Stadia.StamenTerrain) |>
+  addMarkers(data = map_data,
+                   lat = ~lat,
+                   lng = ~lon,
+             icon = ~icons(iconUrl = "Rocket.png", 
+                         iconWidth = 40, 
+                         iconHeight = 40),
+             popup = ~click,
+             label = ~hover) |>
+  setView(lng = -100, 
+          lat = 40, 
+          zoom = 4)
+```
 
 ### Drawing the Route of the ISS
 
