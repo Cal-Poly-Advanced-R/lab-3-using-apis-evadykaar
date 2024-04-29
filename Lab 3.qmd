@@ -123,12 +123,11 @@ leaflet() |>
 city <- read.csv(here("Data", "State Capitals.csv"))
 
 # Joining together datasets
-map_data <- left_join(map_passes, capital, by = c("lon" = "Longitude"))
-map_data <- left_join(map_data, city, by = "State")
+map_data <- map_passes %>%
+  left_join(capital, by = c("lon" = "Longitude")) %>%
+  left_join(city, by = "State") |>
 
 # Making popup for click info column
-map_data <- map_data |>
-  
   # Separating date and time pieces of the passes.start
   separate(passes.start, 
            into = c("Date", "Time.unedit"), 
@@ -161,6 +160,7 @@ hover <- paste(
   "</strong><br>Next Pass:", map_data$First.Pass) %>%
   lapply(htmltools::HTML)
 ```
+
 
 ```{r}
 # Map with a click popup and hover popup
