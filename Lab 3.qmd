@@ -161,7 +161,6 @@ hover <- paste(
   lapply(htmltools::HTML)
 ```
 
-
 ```{r}
 # Map with a click popup and hover popup
 leaflet() |>
