@@ -1,5 +1,5 @@
 ---
-title: "Lab 3"
+title: "Lab 4"
 author: "Kai, Eva, Chloe"
 format: 
   html: 
@@ -21,6 +21,7 @@ library(tidyverse)
 library(httr)
 library(jsonlite)
 library(leaflet)
+library(leaflet.extras2)
 ```
 
 **Create one Quarto file for all of Lab 4.**
@@ -69,6 +70,7 @@ pass_times <- function(latitude, longitude) {
 
 ```{r}
 # Source for bind_rows(): https://dplyr.tidyverse.org/reference/bind_rows.html
+#Creating dataset that includes each pass time per state capital
 map_passes <- map2(capital$Latitude, capital$Longitude, pass_times) |>
   bind_rows()
 ```
@@ -115,45 +117,50 @@ leaflet() |>
 # Source for capital data: https://www.thespreadsheetguru.com/list-united-states-capitals-abbreviations/
 # Source for needing "\\" with a "." to separate by it: https://stackoverflow.com/questions/26665100/how-to-use-the-strsplit-function-with-a-period
 # Source for collapse in paste: https://www.digitalocean.com/community/tutorials/paste-in-r
+# Source for gsub function: https://www.digitalocean.com/community/tutorials/sub-and-gsub-function-r
 
 # Reading in dataset with capital names
 city <- read.csv(here("Data", "State Capitals.csv"))
 
 # Joining together datasets
-map_data <- left_join(map_passes, capital, by = c("lon" = "Longitude"))
-map_data <- left_join(map_data, city, by = "State")
+map_data <- map_passes %>%
+  left_join(capital, by = c("lon" = "Longitude")) %>%
+  left_join(city, by = "State") |>
 
 # Making popup for click info column
-map_data <- map_data |>
   # Separating date and time pieces of the passes.start
   separate(passes.start, 
            into = c("Date", "Time.unedit"), 
            sep = "T", remove = FALSE) |>
+  
   # Separating the hour, minutes, and seconds of the time from the milliseconds
   separate(Time.unedit, 
            into = c("Time", "Rest"), 
            sep = "\\.", remove = FALSE) |>
+  
   # Pasting together the cleaned date and time pieces
   mutate(Date.Time = paste(Date, Time)) |>
+  
   # Pasting together the pass times by state
   group_by(State) |>
   mutate(state.date.times = paste(Date.Time, collapse = ", "),
-  # Making the click part of the popup
          click = paste("<strong>State Capital:", State.Capital,
                         "<br>",
-                       "</strong>Predicted Passes:", state.date.times)) |>
+                       "</strong>Predicted Passes:", "<br>", 
+                       gsub(",", "<br>", state.date.times, fixed = TRUE))) |>
+  
   # Separating the first pass time for each state
   separate(state.date.times, 
            into = c("First.Pass", "Rest Passes"), 
            sep = ",", remove = FALSE)
 
 #Creating hover labels for each state capital
-
 hover <- paste(
   "<strong>State Capital:", map_data$State.Capital,
   "</strong><br>Next Pass:", map_data$First.Pass) %>%
   lapply(htmltools::HTML)
 ```
+
 
 ```{r}
 # Map with a click popup and hover popup
@@ -171,6 +178,7 @@ leaflet() |>
   setView(lng = -100,
           lat = 40,
           zoom = 4)
+
 ```
 
 ### Drawing the Route of the ISS
@@ -180,11 +188,12 @@ Check out this video for [adding polylines](https://www.youtube.com/watch?v=iKES
 1.  Overlay lines on your map that connect the U.S. state capitals in order of pass times (essentially east to west) so that we can see the expected pass order.
 
 ```{r}
+#Arranging the data from east to west
 map_data_arrange <- map_data |>
   ungroup() |> 
-  arrange(lon) 
+  arrange(-lon) 
 
-#Creating hover labels for each state capital
+#Renaming hover labels for each state capital
 hover2 <- paste(
   "<strong>State Capital:", map_data_arrange$State.Capital,
   "</strong><br>Next Pass:", map_data_arrange$First.Pass) %>%
@@ -193,17 +202,16 @@ hover2 <- paste(
 ```
 
 ```{r}
+#Leaflet Map
 
-leaflet() |>
+leaflet(map_data_arrange) |>
   addProviderTiles(providers$Stadia.StamenTerrain) |>
-  addMarkers(data = map_data_arrange,
-                   lat = ~lat,
+  addMarkers(lat = ~lat,
                    lng = ~lon,
              icon = ~icons(iconUrl = "Rocket.png", 
                          iconWidth = 40, 
                          iconHeight = 40),
              popup = ~click,
-
              label = ~hover) |>
   addPolylines(data = map_data_arrange,
                lat = ~lat,
@@ -213,11 +221,22 @@ leaflet() |>
   setView(lng = -100, 
           lat = 40, 
           zoom = 4) |>
-  addPolylines(data = map_data_arrange,
-               lat = ~lat,
+  addPolylines(lat = ~lat,
                lng = ~lon, 
                color = "darkgreen",
                opacity = 1,
-               weight = 4)
+               weight = 4,
+                ) |>
+  addArrowhead(lat = ~lat,
+               lng = ~lon, 
+               color = "darkgreen",
+               opacity = 1,
+               weight = 4)|>
+  addControl(
+    html = "Map of the Order of Pass Times <br> for State Capitals<div>",
+    position = "topright"
+  )
+
+## Source for addArrowhead: https://rdrr.io/cran/leaflet.extras2/src/R/arrowhead.R
 
 ```
